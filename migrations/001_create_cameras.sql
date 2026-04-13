@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS cameras (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    rtsp_url TEXT NOT NULL,
+    location_lat DOUBLE PRECISION,
+    location_lng DOUBLE PRECISION,
+    status VARCHAR(20) DEFAULT 'active',
+    last_heartbeat TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

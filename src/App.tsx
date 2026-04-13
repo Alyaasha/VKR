@@ -19,7 +19,11 @@ import {
   Package, 
   Sun, 
   TrendingUp, 
-  Users 
+  Users,
+  Video,
+  Database,
+  Edit3,
+  Settings
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -217,10 +221,15 @@ export default function App() {
             {[
               { id: 'overview', label: 'Обзор', icon: Activity },
               { id: 'map', label: 'Карта потоков', icon: MapIcon },
+              { id: 'zones', label: 'Редактор зон', icon: Layers },
               { id: 'safety', label: 'Безопасность', icon: AlertTriangle },
               { id: 'gallery', label: 'Архив кадров', icon: Camera },
+              { id: 'active-learning', label: 'Очередь разметки', icon: Edit3 },
               { id: 'monitoring', label: 'Мониторинг ИИ', icon: TrendingUp },
+              { id: 'models', label: 'Реестр моделей', icon: Database },
+              { id: 'cameras', label: 'Камеры', icon: Video },
               { id: 'reports', label: 'Отчеты', icon: Clock },
+              { id: 'settings', label: 'Настройки', icon: Settings },
             ].map(item => (
               <button
                 key={item.id}
@@ -592,6 +601,62 @@ export default function App() {
                   </div>
                 </div>
               </div>
+            </motion.div>
+          ) : activeTab === 'zones' ? (
+            <motion.div
+              key="zones"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+              className="bg-white p-8 rounded-3xl border border-slate-200 h-[600px] flex flex-col items-center justify-center text-center"
+            >
+              <div className="bg-indigo-100 p-4 rounded-full mb-4">
+                <Layers className="w-8 h-8 text-indigo-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Редактор зон</h3>
+              <p className="text-slate-500 max-w-md">Модуль для рисования полигонов запретных и пешеходных зон на карте. Интегрировано с PostgreSQL (таблица zones).</p>
+            </motion.div>
+          ) : activeTab === 'active-learning' ? (
+            <motion.div
+              key="active-learning"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+              className="bg-white p-8 rounded-3xl border border-slate-200 h-[600px] flex flex-col items-center justify-center text-center"
+            >
+              <div className="bg-amber-100 p-4 rounded-full mb-4">
+                <Edit3 className="w-8 h-8 text-amber-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Active Learning Queue</h3>
+              <p className="text-slate-500 max-w-md">Очередь кадров с низкой уверенностью для ручной разметки оператором. Данные из таблицы al_queue.</p>
+            </motion.div>
+          ) : activeTab === 'models' ? (
+            <motion.div
+              key="models"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+              className="bg-white p-8 rounded-3xl border border-slate-200 h-[600px] flex flex-col items-center justify-center text-center"
+            >
+              <div className="bg-purple-100 p-4 rounded-full mb-4">
+                <Database className="w-8 h-8 text-purple-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Реестр моделей</h3>
+              <p className="text-slate-500 max-w-md">Управление версиями YOLO11, EfficientNet и Social-Graph Transformer. Метрики mAP/MOTA.</p>
+            </motion.div>
+          ) : activeTab === 'cameras' ? (
+            <motion.div
+              key="cameras"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+              className="bg-white p-8 rounded-3xl border border-slate-200 h-[600px] flex flex-col items-center justify-center text-center"
+            >
+              <div className="bg-rose-100 p-4 rounded-full mb-4">
+                <Video className="w-8 h-8 text-rose-600" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">Управление камерами</h3>
+              <p className="text-slate-500 max-w-md">Добавление RTSP-потоков и мониторинг статуса камер. Данные из таблицы cameras.</p>
             </motion.div>
           ) : activeTab === 'gallery' ? (
             <motion.div

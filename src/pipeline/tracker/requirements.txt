@@ -1,0 +1,5 @@
+opencv-python
+redis
+influxdb-client
+numpy
+scipy

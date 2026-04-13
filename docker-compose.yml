@@ -1,22 +1,11 @@
 version: '3.8'
 
 services:
-  # 1. API Backend (FastAPI)
-  api:
-    build: ./backend
-    container_name: smart-ped-api
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://user:pass@postgres:5432/smart_ped
-      - REDIS_URL=redis://redis:6379/0
-    depends_on:
-      - postgres
-      - redis
-
-  # 2. Detector (YOLO11)
+  # --- CV Pipeline ---
   detector:
-    build: ./detector
+    build: 
+      context: .
+      dockerfile: Dockerfile.detector
     container_name: smart-ped-detector
     deploy:
       resources:
@@ -25,33 +14,61 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+      - YOLO_WEIGHTS_PATH=/models/yolo11m.pt
+      - TENSORRT_ENABLED=true
+    volumes:
+      - ./models:/models
     depends_on:
       - kafka
 
-  # 3. Tracker (BoT-SORT)
   tracker:
-    build: ./tracker
+    build:
+      context: .
+      dockerfile: Dockerfile.tracker
     container_name: smart-ped-tracker
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - INFLUXDB_URL=http://influxdb:8086
     depends_on:
       - redis
       - influxdb
 
-  # 4. Predictor (Social-Graph Transformer)
   predictor:
-    build: ./predictor
+    build:
+      context: .
+      dockerfile: Dockerfile.predictor
     container_name: smart-ped-predictor
     depends_on:
       - kafka
 
-  # 5. Anomaly Detector
   anomaly:
-    build: ./anomaly
-    container_name: smart-ped-anomaly
+    build:
+      context: .
+      dockerfile: Dockerfile.anomaly
     depends_on:
       - postgres
       - minio
 
-  # Infrastructure
+  # --- API & Backend ---
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: smart-ped-api
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_URL=postgresql://user:pass@postgres:5432/smart_ped
+      - REDIS_URL=redis://redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+
+  # --- Infrastructure ---
   postgres:
     image: ankane/pgvector
     container_name: smart-ped-db
@@ -61,10 +78,14 @@ services:
       - POSTGRES_DB=smart_ped
     volumes:
       - ./migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
 
   redis:
     image: redis:alpine
     container_name: smart-ped-redis
+    ports:
+      - "6379:6379"
 
   kafka:
     image: bitnami/kafka:latest
@@ -73,15 +94,25 @@ services:
       - KAFKA_CFG_NODE_ID=1
       - KAFKA_CFG_PROCESS_ROLES=controller,broker
       - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+    ports:
+      - "9092:9092"
 
   minio:
     image: minio/minio
     container_name: smart-ped-storage
     command: server /data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
 
   influxdb:
     image: influxdb:2.0
     container_name: smart-ped-metrics
+    ports:
+      - "8086:8086"
 
   nginx:
     image: nginx:alpine
@@ -90,3 +121,5 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - api

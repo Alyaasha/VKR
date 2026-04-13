@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS sessions (
+    id SERIAL PRIMARY KEY,
+    camera_id INTEGER REFERENCES cameras(id),
+    start_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    end_time TIMESTAMP WITH TIME ZONE,
+    status VARCHAR(20) DEFAULT 'running'
+);
