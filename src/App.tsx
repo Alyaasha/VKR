@@ -91,6 +91,29 @@ export default function App() {
   const [galleryFilter, setGalleryFilter] = useState('all');
   const [selectedSnapshot, setSelectedSnapshot] = useState<any>(null);
   const [selectedObjectTypes, setSelectedObjectTypes] = useState<string[]>(['pedestrian', 'courier', 'robot']);
+  const [incidents, setIncidents] = useState<any[]>([]);
+  const [tracks, setTracks] = useState<any>({ pedestrians: [], couriers: [], robots: [] });
+  const [stats, setStats] = useState<any>({ active_tracks: 0, conflicts_24h: 0, avg_speed: '0 km/h' });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [incRes, trackRes, statRes] = await Promise.all([
+          fetch('/api/v1/events'),
+          fetch('/api/v1/tracks'),
+          fetch('/api/v1/stats')
+        ]);
+        setIncidents(await incRes.json());
+        setTracks(await trackRes.json());
+        setStats(await statRes.json());
+      } catch (err) {
+        console.error("Failed to fetch data from API:", err);
+      }
+    };
+    fetchData();
+    const interval = setInterval(fetchData, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const OBJECT_TYPES = [
     { id: 'pedestrian', label: 'Пешеходы', color: 'bg-indigo-500' },
@@ -259,10 +282,10 @@ export default function App() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-8">
-          <StatCard title="Всего объектов" value="1,284" icon={Users} trend={12} color="bg-indigo-500" />
-          <StatCard title="Курьеры" value="342" icon={Navigation} trend={5} color="bg-amber-500" />
-          <StatCard title="Роботы" value="56" icon={Package} trend={24} color="bg-purple-500" />
-          <StatCard title="Инциденты" value="3" icon={AlertTriangle} trend={-15} color="bg-rose-500" />
+          <StatCard title="Активные треки" value={stats.active_tracks} icon={Users} trend={12} color="bg-indigo-500" />
+          <StatCard title="Средняя скорость" value={stats.avg_speed} icon={Navigation} trend={5} color="bg-amber-500" />
+          <StatCard title="Конфликты (24ч)" value={stats.conflicts_24h} icon={AlertTriangle} trend={-15} color="bg-rose-500" />
+          <StatCard title="Нагрузка системы" value={stats.system_load || '64%'} icon={Activity} trend={0} color="bg-emerald-500" />
         </div>
 
         <AnimatePresence mode="wait">
@@ -463,27 +486,20 @@ export default function App() {
                   />
                   
                   {/* Trajectories as Polylines */}
-                  {selectedObjectTypes.includes('pedestrian') && [
-                    [[55.756, 37.615], [55.757, 37.618], [55.758, 37.620]],
-                    [[55.754, 37.616], [55.755, 37.619], [55.756, 37.622]],
-                    [[55.758, 37.614], [55.756, 37.617], [55.754, 37.620]],
-                  ].map((positions, i) => (
+                  {selectedObjectTypes.includes('pedestrian') && tracks.pedestrians.map((positions: any, i: number) => (
                     <Polyline 
                       key={`ped-${i}`} 
-                      positions={positions as any} 
+                      positions={positions} 
                       color="#6366f1" 
                       weight={2} 
                       opacity={0.6} 
                     />
                   ))}
 
-                  {selectedObjectTypes.includes('courier') && [
-                    [[55.753, 37.610], [55.755, 37.615], [55.758, 37.625]],
-                    [[55.759, 37.612], [55.756, 37.618], [55.752, 37.622]],
-                  ].map((positions, i) => (
+                  {selectedObjectTypes.includes('courier') && tracks.couriers.map((positions: any, i: number) => (
                     <Polyline 
                       key={`courier-${i}`} 
-                      positions={positions as any} 
+                      positions={positions} 
                       color="#f59e0b" 
                       weight={3} 
                       dashArray="5, 10" 
@@ -491,13 +507,10 @@ export default function App() {
                     />
                   ))}
 
-                  {selectedObjectTypes.includes('robot') && [
-                    [[55.757, 37.613], [55.757, 37.623]],
-                    [[55.754, 37.614], [55.754, 37.624]],
-                  ].map((positions, i) => (
+                  {selectedObjectTypes.includes('robot') && tracks.robots.map((positions: any, i: number) => (
                     <Polyline 
                       key={`robot-${i}`} 
-                      positions={positions as any} 
+                      positions={positions} 
                       color="#a855f7" 
                       weight={4} 
                       opacity={0.9} 
@@ -880,7 +893,7 @@ export default function App() {
               Последние инциденты
             </h3>
             <div className="space-y-4">
-              {INCIDENTS.map(inc => (
+              {incidents.map(inc => (
                 <div key={inc.id} className={`p-4 rounded-xl border transition-all hover:scale-[1.02] cursor-pointer ${
                   isNight ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-50 border-slate-100'
                 }`}>
