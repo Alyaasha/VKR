@@ -1,0 +1,31 @@
+{
+  "timestamp": "2026-04-13T10:30:00Z",
+  "location_id": "ped_zone_moscow_01",
+  "summary": {
+    "total_objects": 142,
+    "couriers_count": 45,
+    "robots_count": 12,
+    "pedestrians_count": 85,
+    "avg_speed": 4.2
+  },
+  "incidents": [
+    {
+      "id": "inc_9821",
+      "type": "critical_proximity",
+      "severity": "high",
+      "objects": ["robot_042", "pedestrian_112"],
+      "distance_min": 0.4,
+      "ttc": 0.8,
+      "coords": {"x": 124.5, "y": 88.2},
+      "snapshot_url": "https://storage.app/snapshots/inc_9821.jpg"
+    }
+  ],
+  "traffic_density": [
+    {"zone": "A1", "density_index": 0.85},
+    {"zone": "B2", "density_index": 0.32}
+  ],
+  "predictions": {
+    "congestion_risk": "low",
+    "expected_peak_hour": "18:00-19:00"
+  }
+}

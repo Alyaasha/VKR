@@ -1,0 +1,6 @@
+{
+  "name": "Smart Pedestrian Analytics",
+  "description": "Система анализа движения курьеров и роботов-доставщиков с использованием компьютерного зрения и предиктивной аналитики.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
